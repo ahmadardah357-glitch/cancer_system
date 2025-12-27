@@ -1,0 +1,6 @@
+@cancer_system_HostAddress = http://localhost:5152
+
+GET {{cancer_system_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

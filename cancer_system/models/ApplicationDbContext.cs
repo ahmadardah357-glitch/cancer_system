@@ -25,6 +25,7 @@ namespace cancer_system.models
         public DbSet<Liver_Function> Liver_Functions { get; set; }
         public DbSet<Radiation_Therapy> Radiation_Therapys { get; set; }
         public DbSet<surgery> surgerys { get; set; }
+        
 
     }
 }

@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace cancer_system.Controllers
 {
-    
+    //ghfbgfhgfhgf
     [ApiController]
     [Route("api/[controller]")]
     [Authorize(Roles = "Admin")] 

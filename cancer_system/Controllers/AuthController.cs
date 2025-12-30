@@ -223,9 +223,12 @@ namespace cancer_system.Controllers
             if (user == null)
                 return BadRequest("Invalid request");
 
+            
+            var decodedToken = Uri.UnescapeDataString(dto.Token);
+
             var result = await _userManager.ResetPasswordAsync(
                 user,
-                dto.Token,
+                decodedToken,
                 dto.NewPassword
             );
 
@@ -234,6 +237,7 @@ namespace cancer_system.Controllers
 
             return Ok("Password reset successfully");
         }
+
 
     }
 }

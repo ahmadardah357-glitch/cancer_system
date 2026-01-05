@@ -35,7 +35,7 @@ namespace cancer_system.Models.Entities
         [Column("UserId")]
         public string AspNetUserId { get; set; }
 
-        
+        [ForeignKey(nameof(AspNetUserId))]
         public ApplicationUser User { get; set; }
 
      

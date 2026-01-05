@@ -193,7 +193,7 @@ namespace cancer_system.Controllers
                 .Select(p => new
                 {
                     p.PatientId,
-                    Name = p.User != null ? p.User.UserName : null,
+                    Name = p.User != null ? p.User.FullName : null,
                     Email = p.User != null ? p.User.Email : null,
                     p.Gender,
                     p.CancerType,

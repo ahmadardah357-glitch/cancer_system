@@ -53,6 +53,11 @@ namespace cancer_system.Data
                 .WithMany()
                 .HasForeignKey(a => a.DoctorId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Patient>()
+    .HasOne(p => p.User)
+    .WithOne(u => u.Patient)
+    .HasForeignKey<Patient>(p => p.AspNetUserId);
         }
 
     }

@@ -32,7 +32,7 @@ namespace cancer_system.Controllers
                     (d, u) => new
                     {
                         d.DoctorId,
-                        Name = u.UserName,
+                        Name = u.FullName,
                         Email = u.Email,
                         PhoneNumber = u.PhoneNumber,
                         d.Specialization
@@ -55,7 +55,7 @@ namespace cancer_system.Controllers
                     (p, u) => new
                     {
                         p.PatientId,
-                        Name = u.UserName,
+                        Name = u.FullName,
                         Email = u.Email,
                         PhoneNumber = u.PhoneNumber,
                         p.Gender,

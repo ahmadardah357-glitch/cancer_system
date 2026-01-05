@@ -39,8 +39,9 @@ namespace cancer_system.Controllers
                     {
                         d.DoctorId,
                         DoctorUserId = u.Id,
-                        Name = u.UserName,
+                        Name = u.FullName,
                         Email = u.Email,
+                        PhoneNumber = u.PhoneNumber,
                         d.Specialization
                     })
                 .ToList();
@@ -143,7 +144,7 @@ namespace cancer_system.Controllers
                         PhoneNumber = u.PhoneNumber,
                         DateOfBirth = p.DateOfBirth,
                         Gender = p.Gender,
-                        CancerType = p.CancerType
+                      
                     })
                 .FirstOrDefault();
 
@@ -156,34 +157,79 @@ namespace cancer_system.Controllers
 
 
         [Authorize(Roles = "Patient")]
-        [HttpPut("profile")]
-        public async Task<IActionResult> UpdateProfile(UpdatePatientProfileDto dto)
+        [HttpPatch("profile/phone")]
+        public async Task<IActionResult> UpdatePhone([FromBody] UpdatePhoneDto dto)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-          
             var user = await _context.Users.FindAsync(userId);
+
             if (user == null)
                 return NotFound("User not found");
 
             user.PhoneNumber = dto.PhoneNumber;
 
-        
+            await _context.SaveChangesAsync();
+            return Ok("Phone number updated successfully");
+        }
+
+        [Authorize(Roles = "Patient")]
+        [HttpPatch("profile/name")]
+        public async Task<IActionResult> UpdateName([FromBody] UpdateNameDto dto)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
             var patient = await _context.Patients
                 .FirstOrDefaultAsync(p => p.AspNetUserId == userId);
 
             if (patient == null)
                 return NotFound("Patient profile not found");
 
-            patient.FullName = dto.Name;
+            patient.FullName = dto.FullName;
+
+            await _context.SaveChangesAsync();
+            return Ok("Name updated successfully");
+        }
+
+
+
+        [Authorize(Roles = "Patient")]
+        [HttpPatch("profile/gender")]
+        public async Task<IActionResult> UpdateGender([FromBody] UpdateGenderDto dto)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var patient = await _context.Patients
+                .FirstOrDefaultAsync(p => p.AspNetUserId == userId);
+
+            if (patient == null)
+                return NotFound("Patient profile not found");
+
             patient.Gender = dto.Gender;
-            patient.CancerType = dto.CancerType;
+
+            await _context.SaveChangesAsync();
+            return Ok("Gender updated successfully");
+        }
+
+
+        [Authorize(Roles = "Patient")]
+        [HttpPatch("profile/birthdate")]
+        public async Task<IActionResult> UpdateDateOfBirth([FromBody] UpdateDateOfBirthDto dto)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var patient = await _context.Patients
+                .FirstOrDefaultAsync(p => p.AspNetUserId == userId);
+
+            if (patient == null)
+                return NotFound("Patient profile not found");
+
             patient.DateOfBirth = dto.DateOfBirth;
 
             await _context.SaveChangesAsync();
-
-            return Ok("Patient profile updated successfully");
+            return Ok("Date of birth updated successfully");
         }
+
+
 
 
     }

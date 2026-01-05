@@ -1,7 +1,7 @@
 ﻿namespace cancer_system.DTOs.DoctorDTO
 {
    
-        public class UpdateDoctorDto
+        public class UpdateDoctorSpecializationDto
         {
             public string Specialization { get; set; }
         }

@@ -49,6 +49,7 @@ namespace cancer_system.Controllers
                 dp.PatientId == patientId);
         }
 
+
         [HttpGet("profile")]
         [Authorize(Roles = "Doctor")]
         public IActionResult GetDoctorProfile()
@@ -73,36 +74,108 @@ namespace cancer_system.Controllers
 
             return Ok(profile);
         }
+        [HttpGet("doctors")]
+        public IActionResult GetDoctors()
+        {
+            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var doctors = _context.Doctors
+                .Where(d => d.AspNetUserId != currentUserId) 
+                .Join(_context.Users,
+                    d => d.AspNetUserId,
+                    u => u.Id,
+                    (d, u) => new
+                    {
+                        d.DoctorId,
+                        DoctorUserId = u.Id,
+                        Name = u.FullName,
+                        Email = u.Email,
+                        PhoneNumber = u.PhoneNumber,
+                        d.Specialization
+                    })
+                .ToList();
+
+            return Ok(doctors);
+        }
+
 
         [Authorize(Roles = "Doctor")]
-        [HttpPut("profile")]
-        public async Task<IActionResult> UpdateProfile(UpdateDoctorProfileDto dto)
+        [HttpPatch("profile/phone")]
+        public async Task<IActionResult> UpdatePhone([FromBody] UpdateDoctorPhoneDto dto)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            
             var user = await _context.Users.FindAsync(userId);
             if (user == null)
                 return NotFound("User not found");
 
             user.PhoneNumber = dto.PhoneNumber;
 
-           
+            await _context.SaveChangesAsync();
+            return Ok("Phone number updated successfully");
+        }
+
+
+
+        [Authorize(Roles = "Doctor")]
+        [HttpPatch("profile/name")]
+        public async Task<IActionResult> UpdateName([FromBody] UpdateDoctorNameDto dto)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
             var doctor = await _context.Doctors
                 .FirstOrDefaultAsync(d => d.AspNetUserId == userId);
 
             if (doctor == null)
                 return NotFound("Doctor profile not found");
 
-            doctor.FullName = dto.Name;
+            doctor.FullName = dto.FullName;
+
+            await _context.SaveChangesAsync();
+            return Ok("Name updated successfully");
+        }
+
+
+
+        [Authorize(Roles = "Doctor")]
+        [HttpPatch("profile/specialization")]
+        public async Task<IActionResult> UpdateSpecialization([FromBody] UpdateDoctorSpecializationDto dto)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var doctor = await _context.Doctors
+                .FirstOrDefaultAsync(d => d.AspNetUserId == userId);
+
+            if (doctor == null)
+                return NotFound("Doctor profile not found");
+
             doctor.Specialization = dto.Specialization;
+
+            await _context.SaveChangesAsync();
+            return Ok("Specialization updated successfully");
+        }
+
+
+
+
+        [Authorize(Roles = "Doctor")]
+        [HttpPatch("profile/experience")]
+        public async Task<IActionResult> UpdateExperience([FromBody] UpdateDoctorExperienceDto dto)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var doctor = await _context.Doctors
+                .FirstOrDefaultAsync(d => d.AspNetUserId == userId);
+
+            if (doctor == null)
+                return NotFound("Doctor profile not found");
+
             doctor.YearsOfExperience = dto.YearsOfExperience;
 
-          
             await _context.SaveChangesAsync();
-
-            return Ok("Doctor profile updated successfully");
+            return Ok("Years of experience updated successfully");
         }
+
 
 
 
@@ -978,4 +1051,6 @@ namespace cancer_system.Controllers
             return Ok(messages);
         }
     }
+
 }
+

@@ -9,7 +9,7 @@ namespace cancer_system.Models.Entities
         [Column("session_id")]
         public int SessionId { get; set; }
 
-        // FK → Patient.patient_id
+        
         [Required]
         [Column("patient_id")]
         public int PatientId { get; set; }
@@ -18,7 +18,7 @@ namespace cancer_system.Models.Entities
         public Patient Patient { get; set; }
 
         [Required]
-        [Column("question_text")]
+        [Column("question_text")]   
         public string QuestionText { get; set; }
 
         [Column("reply")]

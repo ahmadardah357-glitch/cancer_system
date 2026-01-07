@@ -39,6 +39,12 @@ namespace cancer_system.Controllers
                 .FirstOrDefault();
         }
 
+        private string GetUserId()
+        {
+            return User.FindFirstValue(ClaimTypes.NameIdentifier);
+        }
+
+
         private bool IsMyPatient(int patientId)
         {
             var doctorId = GetDoctorIdSafe();
@@ -1010,14 +1016,20 @@ namespace cancer_system.Controllers
             return Ok();
         }
 
-       
+
         [HttpPost("chat/send")]
         public async Task<IActionResult> SendMessage(SendMessageDto dto)
         {
+            var senderId = GetUserId();
+
             
+            var receiverExists = _context.Users.Any(u => u.Id == dto.ReceiverId);
+            if (!receiverExists)
+                return BadRequest("Receiver user does not exist");
+
             var chat = new Chat
             {
-                SenderId = UserId,
+                SenderId = senderId,
                 ReceiverId = dto.ReceiverId,
                 MessageText = dto.MessageText,
                 SentAt = DateTime.Now
@@ -1026,13 +1038,14 @@ namespace cancer_system.Controllers
             _context.Chats.Add(chat);
             await _context.SaveChangesAsync();
 
-            return Ok();
+            return Ok("Message sent");
         }
+
 
         [HttpGet("chat/{otherUserId}")]
         public IActionResult GetChat(string otherUserId)
         {
-            var myId = UserId;
+            var myId = GetUserId();
 
             var messages = _context.Chats
                 .Where(c =>
@@ -1050,6 +1063,63 @@ namespace cancer_system.Controllers
 
             return Ok(messages);
         }
+
+        [HttpGet("chat/list")]
+        public IActionResult GetChatList()
+        {
+            var myId = GetUserId();
+
+         
+            var chats = _context.Chats
+                .Where(c => c.SenderId == myId || c.ReceiverId == myId)
+                .AsNoTracking()
+                .Select(c => new
+                {
+                    c.SenderId,
+                    c.ReceiverId,
+                    c.MessageText,
+                    c.SentAt
+                })
+                .ToList();
+
+         
+            var otherUserIds = chats
+                .Select(c => c.SenderId == myId ? c.ReceiverId : c.SenderId)
+                .Distinct()
+                .ToList();
+
+            
+            var users = _context.Users
+                .Where(u => otherUserIds.Contains(u.Id))
+                .Select(u => new { u.Id, u.FullName, u.UserName })
+                .ToDictionary(u => u.Id);
+
+            
+            var result = chats
+                .GroupBy(c => c.SenderId == myId ? c.ReceiverId : c.SenderId)
+                .Select(g =>
+                {
+                    var last = g.OrderByDescending(x => x.SentAt).First();
+                    var otherId = last.SenderId == myId ? last.ReceiverId : last.SenderId;
+
+                    users.TryGetValue(otherId, out var user);
+
+                    return new ChatListDto
+                    {
+                        OtherUserId = otherId,
+                        OtherUserName = user?.FullName ?? user?.UserName ?? "Unknown",
+                        LastMessage = last.MessageText,
+                        LastSentAt = last.SentAt
+                    };
+                })
+                .OrderByDescending(x => x.LastSentAt)
+                .ToList();
+
+            return Ok(result);
+        }
+
+
+
     }
 
 }

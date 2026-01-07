@@ -49,13 +49,20 @@ namespace cancer_system.Controllers
             return Ok(doctors);
         }
 
-       
+
         [HttpPost("chat/send")]
         public async Task<IActionResult> SendMessage(SendMessageDto dto)
         {
+            var senderId = GetUserId();
+
+
+            var receiverExists = _context.Users.Any(u => u.Id == dto.ReceiverId);
+            if (!receiverExists)
+                return BadRequest("Receiver user does not exist");
+
             var chat = new Chat
             {
-                SenderId = GetUserId(),
+                SenderId = senderId,
                 ReceiverId = dto.ReceiverId,
                 MessageText = dto.MessageText,
                 SentAt = DateTime.Now
@@ -67,22 +74,84 @@ namespace cancer_system.Controllers
             return Ok("Message sent");
         }
 
-        [HttpGet("chat/{doctorUserId}")]
-        public IActionResult GetChat(string doctorUserId)
+
+        [HttpGet("chat/{otherUserId}")]
+        public IActionResult GetChat(string otherUserId)
         {
             var myId = GetUserId();
 
-            var chat = _context.Chats
+            var messages = _context.Chats
                 .Where(c =>
-                    (c.SenderId == myId && c.ReceiverId == doctorUserId) ||
-                    (c.SenderId == doctorUserId && c.ReceiverId == myId))
+                    (c.SenderId == myId && c.ReceiverId == otherUserId) ||
+                    (c.SenderId == otherUserId && c.ReceiverId == myId))
+                .AsNoTracking()
                 .OrderBy(c => c.SentAt)
+                .Select(c => new
+                {
+                    c.MessageText,
+                    c.SentAt,
+                    IsMe = c.SenderId == myId
+                })
                 .ToList();
 
-            return Ok(chat);
+            return Ok(messages);
         }
 
-       
+        [HttpGet("chat/list")]
+        public IActionResult GetChatList()
+        {
+            var myId = GetUserId();
+
+
+            var chats = _context.Chats
+                .Where(c => c.SenderId == myId || c.ReceiverId == myId)
+                .AsNoTracking()
+                .Select(c => new
+                {
+                    c.SenderId,
+                    c.ReceiverId,
+                    c.MessageText,
+                    c.SentAt
+                })
+                .ToList();
+
+
+            var otherUserIds = chats
+                .Select(c => c.SenderId == myId ? c.ReceiverId : c.SenderId)
+                .Distinct()
+                .ToList();
+
+
+            var users = _context.Users
+                .Where(u => otherUserIds.Contains(u.Id))
+                .Select(u => new { u.Id, u.FullName, u.UserName })
+                .ToDictionary(u => u.Id);
+
+
+            var result = chats
+                .GroupBy(c => c.SenderId == myId ? c.ReceiverId : c.SenderId)
+                .Select(g =>
+                {
+                    var last = g.OrderByDescending(x => x.SentAt).First();
+                    var otherId = last.SenderId == myId ? last.ReceiverId : last.SenderId;
+
+                    users.TryGetValue(otherId, out var user);
+
+                    return new ChatListDto
+                    {
+                        OtherUserId = otherId,
+                        OtherUserName = user?.FullName ?? user?.UserName ?? "Unknown",
+                        LastMessage = last.MessageText,
+                        LastSentAt = last.SentAt
+                    };
+                })
+                .OrderByDescending(x => x.LastSentAt)
+                .ToList();
+
+            return Ok(result);
+        }
+
+
         [HttpGet("calendar/today")]
         public IActionResult TodaySchedule()
         {

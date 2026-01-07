@@ -58,6 +58,20 @@ namespace cancer_system.Data
     .HasOne(p => p.User)
     .WithOne(u => u.Patient)
     .HasForeignKey<Patient>(p => p.AspNetUserId);
+
+            modelBuilder.Entity<Chat>()
+       .HasOne(c => c.Sender)
+       .WithMany()
+       .HasForeignKey(c => c.SenderId)
+       .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Chat>()
+                .HasOne(c => c.Receiver)
+                .WithMany()
+                .HasForeignKey(c => c.ReceiverId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
         }
 
     }

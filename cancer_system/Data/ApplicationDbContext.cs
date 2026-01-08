@@ -22,6 +22,8 @@ namespace cancer_system.Data
         public DbSet<Chat> Chats { get; set; }
         public DbSet<Attends> Attendss { get; set; }
         public DbSet<ChatbotSession> ChatbotSessions { get; set; }
+        public DbSet<ChatbotMessage> ChatbotMessages { get; set; }
+
         public DbSet<Cancer_information> Cancer_informations { get; set; }
         public DbSet<Chemotherapy> Chemotherapys { get; set; }
         public DbSet<Hormonal> Hormonals { get; set; }

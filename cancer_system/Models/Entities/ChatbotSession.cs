@@ -1,34 +1,27 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace cancer_system.Models.Entities
 {
     public class ChatbotSession
     {
         [Key]
-        [Column("session_id")]
         public int SessionId { get; set; }
 
-        
         [Required]
-        [Column("patient_id")]
-        public int PatientId { get; set; }
-
-        [ForeignKey("PatientId")]
-        public Patient Patient { get; set; }
+        public string UserId { get; set; }   
 
         [Required]
-        [Column("question_text")]   
-        public string QuestionText { get; set; }
-
-        [Column("reply")]
-        public string? Reply { get; set; }
+        public string UserType { get; set; } 
 
         [Required]
-        [Column("session_date")]
-        public DateTime SessionDate { get; set; } = DateTime.UtcNow;
+        public string Title { get; set; }
 
-        [Column("session_type")]
-        public string? SessionType { get; set; }
+        public string ModelName { get; set; } = "gpt";
+
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        public ICollection<ChatbotMessage> Messages { get; set; }
     }
 }
